@@ -34,11 +34,15 @@ jobs:
 
       - name: Build Windows
         if: ${{ matrix.target == 'Windows' }}
-        run: godot --headless --verbose --export-release "Windows Desktop" "build/$EXPORT_NAME.exe"
+        env:
+          VERSION: ${{ inputs.version }}
+        run: godot --headless --verbose --export-release "Windows Desktop" "build/$EXPORT_NAME-$VERSION.exe"
 
       - name: Build Linux
         if: ${{ matrix.target == 'Linux' }}
-        run: godot --headless --verbose --export-release "Linux" "build/$EXPORT_NAME.x86_64"
+        env:
+          VERSION: ${{ inputs.version }}
+        run: godot --headless --verbose --export-release "Linux" "build/$EXPORT_NAME-$VERSION.x86_64"
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
@@ -47,3 +51,36 @@ jobs:
           path: "build"
           if-no-files-found: error
           retention-days: 1
+
+  release:
+    permissions:
+      contents: write
+  
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Windows release
+        uses: actions/download-artifact@v5
+        with:
+          path: build/windows
+          name: "Windows"
+
+      - name: ZIP Windows
+        run: 7z a -tzip Windows.zip -w build/windows/.
+
+      - name: Download Linux release
+        uses: actions/download-artifact@v5
+        with:
+          path: build/linux
+          name: "Linux"
+
+      - name: ZIP Linux
+        run: 7z a -tzip Linux.zip -w build/linux/.
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.version }}
+          fail_on_unmatched_files: true
+          files: |
+            Linux.zip
+            Windows.zip
