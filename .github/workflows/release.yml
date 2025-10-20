@@ -27,7 +27,9 @@ jobs:
       - name: Setup
         run: |
           mkdir -v -p ~/.config/
-          mv /root/.config/godot ~/.config/godot
+          cp -r /root/.config/godot ~/.config
+          mkdir -v -p ~/.local/share/godot/export_templates/
+          cp -r /root/.local/share/godot/export_templates ~/.local/share/godot/
           mkdir -v -p build
 
       - name: Build Windows
