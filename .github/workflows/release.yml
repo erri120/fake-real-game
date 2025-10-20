@@ -1,0 +1,47 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "version to release"
+        type: string
+        required: true
+
+env:
+  GODOT_VERSION: 4.3
+  EXPORT_NAME: "FakeRealGame"
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: [ Linux, Windows ]
+    container:
+      image: barichello/godot-ci:4.3
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup
+        run: |
+          mkdir -v -p ~/.config/
+          mv /root/.config/godot ~/.config/godot
+          mkdir -v -p build
+
+      - name: Build Windows
+        if: matrix.target == "Windows"
+        run: godot --headless --verbose --export-release "Windows Desktop" "build/$EXPORT_NAME.exe"
+
+      - name: Build Linux
+        if: matrix.target == "Linux"
+        run: godot --headless --verbose --export-release "Linux" "build/$EXPORT_NAME.x86_64"
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.target }}
+          path: "build"
+          if-no-files-found: error
+          retention-days: 1
