@@ -31,11 +31,11 @@ jobs:
           mkdir -v -p build
 
       - name: Build Windows
-        if: matrix.target == "Windows"
+        if: ${{ matrix.target == 'Windows' }}
         run: godot --headless --verbose --export-release "Windows Desktop" "build/$EXPORT_NAME.exe"
 
       - name: Build Linux
-        if: matrix.target == "Linux"
+        if: ${{ matrix.target == 'Linux' }}
         run: godot --headless --verbose --export-release "Linux" "build/$EXPORT_NAME.x86_64"
 
       - name: Upload Artifacts
